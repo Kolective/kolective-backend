@@ -8,11 +8,11 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-
+    
     // Bundler mode
     "moduleResolution": "node",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "noEmit": true,
 
     // Best practices
@@ -23,14 +23,11 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
+    "noPropertyAccessFromIndexSignature": false
   },
-  "exclude": [
-    "node_modules",
-  ],
-  "include": ["**/*.ts"],
+  "exclude": ["node_modules"],
+  "include": ["**/*.ts", "**/*.js"],
   "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node",
+    "esm": true
   }
 }

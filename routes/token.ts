@@ -9,7 +9,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/tokens/data:
+ * /api/token/data:
  *   get:
  *     summary: Retrieve a list of tokens
  *     description: Returns an array of tokens with their metadata.
@@ -39,11 +39,11 @@ const router = Router();
  *                   price:
  *                     type: number
  */
-router.get("/api/tokens/data", (req: any, res: any) => { res.json(TOKEN_DATA) });
+router.get("/api/token/data", (req: any, res: any) => { res.json(TOKEN_DATA) });
 
 /**
  * @swagger
- * /api/tokens/init:
+ * /api/token/init:
  *   get:
  *     summary: Initialize token data
  *     tags: [Tokens]
@@ -51,7 +51,7 @@ router.get("/api/tokens/data", (req: any, res: any) => { res.json(TOKEN_DATA) })
  *       200:
  *         description: Token initialization successful
  */
-router.get("/api/tokens/init", initializeTokens);
+router.get("/api/token/init", initializeTokens);
 
 /**
  * @swagger

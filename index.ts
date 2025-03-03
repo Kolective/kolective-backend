@@ -6,6 +6,11 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { setupSwagger } from "./swagger.js";
 import { TOKEN_DATA } from "./data/token.js";
 import { KOL_DATA } from "./data/kol.js";
+import path from "path";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
@@ -15,6 +20,7 @@ const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
 interface UpdateRequest {
   twitter_username: string;

@@ -8,12 +8,12 @@
   ],
   "routes": [
     {
+      "src": "/docs/(.*)",
+      "dest": "/index.ts"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/",
-      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*"
-      }
+      "dest": "/index.ts"
     }
   ]
 }
