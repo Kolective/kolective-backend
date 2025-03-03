@@ -15,10 +15,14 @@ const options: swaggerJsdoc.Options = {
         url: "http://localhost:5000",
         description: "Local development server",
       },
+      {
+        url: "https://kolective-backend.vercel.app",
+        description: "Production server",
+      },
     ],
     schemes: ["http", "https"],
   },
-  apis: ["./routes/*.ts"], 
+  apis: ["./routes/*.ts", "./routes/*.js"], 
 };
 
 const specs = swaggerJsdoc(options);

@@ -8,7 +8,7 @@ import {
   getKOLById,
   updateCustomKOLTradeData,
   updateAllKOLData,
-} from "../index";
+} from "../index.js";
 
 const router = Router();
 

@@ -3,9 +3,9 @@ import type { Request, Response } from "express";
 import * as dotenv from "dotenv";
 import cors from "cors";
 import { Prisma, PrismaClient } from "@prisma/client";
-import { setupSwagger } from "./swagger";
-import { TOKEN_DATA } from "./data/token.data";
-import { KOL_DATA } from "./data/kol.data";
+import { setupSwagger } from "./swagger.js";
+import { TOKEN_DATA } from "./data/token.js";
+import { KOL_DATA } from "./data/kol.js";
 
 dotenv.config();
 

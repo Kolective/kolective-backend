@@ -3,7 +3,7 @@ import {
   initializeTokens,
   getTokenByAddress,
 } from "../index";
-import { TOKEN_DATA } from "../data/token.data";
+import { TOKEN_DATA } from "../data/token.js";
 
 const router = Router();
 
