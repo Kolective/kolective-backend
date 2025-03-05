@@ -14,7 +14,7 @@ export const TOKEN_DATA = [
     "address": "0xA0136570855595B56ECD47C4b169a6Ce4b2c0651",
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
-    "logoURI": "https://gmgn.ai/defi/images/tokenmedia/b71639ceb0f9226c0f98a06dfa0d260c_128x128.jpg",
+    "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/35336.png",
     "price": 15.92
   },
   {
@@ -41,7 +41,7 @@ export const TOKEN_DATA = [
     "address": "0x0Ca5dA1eCB61774776403c9045DeDF68464374eA",
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
-    "logoURI": "https://gmgn.ai/defi/images/tokenmedia/bb7c761cb26f0b7d3755429577e8f854_128x128.png",
+    "logoURI": "https://s2.coinmarketcap.com/static/img/coins/200x200/29560.png",
     "price": 0.05
   }
 ];
