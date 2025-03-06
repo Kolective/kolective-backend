@@ -54,7 +54,7 @@ export const initTokens = async (req: Request, res: Response) => {
           decimals: token.decimals,
           logo: token.logoURI,
           priceChange24H: token.price,
-          tags: token.tags,
+          tags: Array.isArray(token.tags) ? token.tags : [],
         },
       });
     }
