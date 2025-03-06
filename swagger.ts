@@ -14,8 +14,8 @@ const swaggerDocument = {
     "title": "Kolective Management API",
     "description": "API documentation for managing KOL data, token trading, and statistics"
   },
-  // "host": "kolective-backend.vercel.app",
-  "host": "localhost:5000",
+  "host": "kolective-backend.vercel.app",
+  // "host": "localhost:5000",
   "basePath": "/api",
   "schemes": ["https", "http"],
   "paths": {
