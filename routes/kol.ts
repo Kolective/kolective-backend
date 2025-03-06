@@ -1,65 +1,39 @@
 import { Router } from "express";
 import {
-  checkKOLDataExists,
-  initKOLData,
-  getKOLData,
-  autoFillKolNullData,
-  getKOLByUsername,
+  seedKOL,
+  getAllKOL,
+  addKOL,
+  deleteKOL,
+  updateKOL,
   getKOLById,
-  updateCustomKOLTradeData,
-  updateAllKOLData,
+  getKOLByUsername,
 } from "../index.js";
 
 const router = Router();
 
-
 /**
  * @swagger
- * /api/kol/check:
+ * /api/kol/seed:
  *   get:
- *     summary: Check if KOL data and tokens exist
+ *     summary: Seed KOL data into the database
  *     tags: [KOL]
  *     responses:
  *       200:
- *         description: KOL data checked successfully
+ *         description: KOLs and tweets seeded successfully
  */
-router.get("/api/kol/check", checkKOLDataExists);
+router.get("/api/kol/seed", seedKOL);
 
 /**
  * @swagger
- * /api/kol/init:
+ * /api/kol:
  *   get:
- *     summary: Init or update KOL data
+ *     summary: Retrieve all KOLs
  *     tags: [KOL]
  *     responses:
  *       200:
- *         description: KOL data initd or updated successfully
+ *         description: List of all KOLs retrieved successfully
  */
-router.get("/api/kol/init", initKOLData);
-
-/**
- * @swagger
- * /api/kol/data:
- *   get:
- *     summary: Retrieve all KOL data with trading history
- *     tags: [KOL]
- *     responses:
- *       200:
- *         description: List of KOL data
- */
-router.get("/api/kol/data", getKOLData);
-
-/**
- * @swagger
- * /api/kol/fill:
- *   get:
- *     summary: Fill empty KOL data fields with random values
- *     tags: [KOL]
- *     responses:
- *       200:
- *         description: KOL data fields filled successfully
- */
-router.get("/api/kol/fill", autoFillKolNullData);
+router.get("/api/kol", getAllKOL);
 
 /**
  * @swagger
@@ -101,26 +75,87 @@ router.get("/api/kol/id/:id", getKOLById);
 
 /**
  * @swagger
- * /api/kol/update:
+ * /api/kol/add:
  *   post:
- *     summary: Update trading data for a specific KOL
+ *     summary: Add a new KOL
  *     tags: [KOL]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *               followersTwitter:
+ *                 type: integer
+ *               followersKOL:
+ *                 type: integer
+ *               avgProfitD:
+ *                 type: integer
  *     responses:
  *       200:
- *         description: KOL trading data updated successfully
+ *         description: KOL added successfully
  */
-router.post("/api/kol/update", updateCustomKOLTradeData);
+router.post("/api/kol/add", addKOL);
 
 /**
  * @swagger
- * /api/kol/update-all:
- *   post:
- *     summary: Update all KOL data
+ * /api/kol/update:
+ *   put:
+ *     summary: Update KOL data
  *     tags: [KOL]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               name:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *               followersTwitter:
+ *                 type: integer
+ *               followersKOL:
+ *                 type: integer
+ *               avgProfitD:
+ *                 type: integer
  *     responses:
  *       200:
- *         description: All KOL data updated successfully
+ *         description: KOL updated successfully
  */
-router.post("/api/kol/update-all", updateAllKOLData);
+router.put("/api/kol/update", updateKOL);
+
+/**
+ * @swagger
+ * /api/kol/delete:
+ *   delete:
+ *     summary: Delete a KOL
+ *     tags: [KOL]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: KOL deleted successfully
+ */
+router.delete("/api/kol/delete", deleteKOL);
 
 export default router;

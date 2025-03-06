@@ -7,107 +7,72 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Kol {
-  id                    Int      @id @default(autoincrement())
-  twitter_bind          Boolean?
-  twitter_url           String?
-  twitter_fans_num      Int?
-  twitter_username      String?  @unique
-  twitter_name          String?
-  ens                   String?
-  avatar                String?
-  name                  String?
-  balance               String?
-  total_value           Float?
-  unrealized_profit     Float?
-  unrealized_pnl        Float?
-  realized_profit       Float?
-  pnl                   Float?
-  pnl_1d                Float?
-  pnl_7d                Float?
-  pnl_30d               Float?
-  realized_profit_1d    Float?
-  realized_profit_7d    Float?
-  realized_profit_30d   Float?
-  winrate               Float?
-  all_pnl               Float?
-  total_profit          Float?
-  total_profit_pnl      Float?
-  buy_1d                Float?
-  sell_1d               Float?
-  buy_7d                Float?
-  sell_7d               Float?
-  buy_30d               Float?
-  sell_30d              Float?
-  buy                   Float?
-  sell                  Float?
-  history_bought_cost   Float?
-  token_avg_cost        Float?
-  token_sold_avg_profit Float?
-  token_num             Int?
-  profit_num            Int?
-  pnl_lt_minus_dot5_num Int?
-  pnl_minus_dot5_0x_num Int?
-  pnl_lt_2x_num         Int?
-  pnl_2x_5x_num         Int?
-  pnl_gt_5x_num         Int?
-  last_active_timestamp Int?
-  tags                  String[]
-  tag_rank              Json
-  followers_count       Int?
-  is_contract           Boolean?
-  updated_at            Int?
-  refresh_requested_at  Int?
-  avg_holding_peroid    Float?
-
-  trades Trade[]
+enum RiskRecommendation {
+  CONSERVATIVE
+  BALANCED
+  AGGRESSIVE
 }
 
-model Trade {
-  id                    Int     @id @default(autoincrement())
-  kolId                 Int
-  tokenId               Int
-  balance               String?
-  usd_value             String?
-  realized_profit_30d   String?
-  realized_profit       String?
-  realized_pnl          String?
-  realized_pnl_30d      String?
-  unrealized_profit     String?
-  unrealized_pnl        String?
-  total_profit          String?
-  total_profit_pnl      String?
-  avg_cost              String?
-  avg_sold              String?
-  buy_30d               Int?
-  sell_30d              Int?
-  sells                 Int?
-  price                 String?
-  cost                  String?
-  position_percent      String?
-  last_active_timestamp Int?
-  history_sold_income   String?
-  history_bought_cost   String?
-  start_holding_at      Int?
-  end_holding_at        Int?
-  liquidity             String?
-  wallet_token_tags     Json?
+enum SignalType {
+  BUY
+  SELL
+}
 
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model KOL {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  username           String              @unique
+  avatar             String
+  followersTwitter   Int
+  followersKOL       Int
+  riskRecommendation RiskRecommendation?
+  tweets             Tweet[]
+  avgProfitD         Int
+  rankFollowersKOL   Int?
+  rankAvgProfitD     Int?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([username])
+  @@index([followersTwitter])
+  @@index([riskRecommendation])
+}
+
+model Tweet {
+  id           Int      @id @default(autoincrement())
+  tokenId      Int
+  content      String
+  signal       SignalType
+  risk         RiskLevel
+  timestamp    BigInt
+  expired      Boolean  @default(false)
+  valid        Boolean  @default(true)
+  kolId        Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  kol   KOL   @relation(fields: [kolId], references: [id], onDelete: Cascade)
   token Token @relation(fields: [tokenId], references: [id])
-  kol   Kol   @relation(fields: [kolId], references: [id])
+
+  @@index([tokenId])
 }
 
 model Token {
-  id              Int      @id @default(autoincrement())
-  address         String   @unique
-  token_address   String?
-  symbol          String?
-  name            String?
-  decimals        Int?
-  logo            String?
-  price_change_6h String?
-  is_show_alert   Boolean?
-  is_honeypot     Boolean?
+  id             Int     @id @default(autoincrement())
+  addressToken   String  @unique
+  symbol         String
+  name           String
+  decimals       Int
+  chain          String
+  logo           String
+  priceChange24H Float
+  tags           String[]
 
-  trades Trade[]
+  tweets Tweet[]
 }

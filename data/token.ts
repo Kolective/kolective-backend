@@ -6,7 +6,8 @@ export const TOKEN_DATA = [
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
     "logoURI": "https://dd.dexscreener.com/ds-data/tokens/solana/B5WTLaRwaUQpKk7ir1wniNB6m5o8GgMrimhKMYan2R6B.png",
-    "price": 0.0011
+    "price": 0.0011,
+    "tags": []
   },
   {
     "name": "OFFICIAL TRUMP",
@@ -15,7 +16,8 @@ export const TOKEN_DATA = [
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
     "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/35336.png",
-    "price": 15.92
+    "price": 15.92,
+    "tags": ["TOP 10 MARKET"]
   },
   {
     "name": "DOGE AI",
@@ -24,7 +26,8 @@ export const TOKEN_DATA = [
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
     "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/35601.png",
-    "price": 0.062
+    "price": 0.062,
+    "tags": ["TOP 10 MARKET"]
   },
   {
     "name": "dogwifhat",
@@ -33,7 +36,8 @@ export const TOKEN_DATA = [
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
     "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/28752.png",
-    "price": 0.77
+    "price": 0.77,
+    "tags": ["TOP 10 MARKET"]
   },
   {
     "name": "STONKS",
@@ -42,6 +46,7 @@ export const TOKEN_DATA = [
     "chain": "Sonic Blaze Testnet",
     "decimals": 18,
     "logoURI": "https://s2.coinmarketcap.com/static/img/coins/200x200/29560.png",
-    "price": 0.05
+    "price": 0.05,
+    "tags": []
   }
 ];
