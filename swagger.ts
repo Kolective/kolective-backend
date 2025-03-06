@@ -82,25 +82,25 @@ const swaggerDocument = {
       "post": {
         "summary": "Add a new KOL",
         "tags": ["KOL"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["name", "username", "avatar", "followersTwitter", "followersKOL", "avgProfitD"],
-                "properties": {
-                  "name": { "type": "string", "example": "John Doe" },
-                  "username": { "type": "string", "example": "johndoe" },
-                  "avatar": { "type": "string", "example": "https://example.com/avatar.jpg" },
-                  "followersTwitter": { "type": "integer", "example": 10000 },
-                  "followersKOL": { "type": "integer", "example": 5000 },
-                  "avgProfitD": { "type": "integer", "example": 200 }
-                }
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["name", "username", "avatar", "followersTwitter", "followersKOL", "avgProfitD"],
+              "properties": {
+                "name": { "type": "string", "example": "John Doe" },
+                "username": { "type": "string", "example": "johndoe" },
+                "avatar": { "type": "string", "example": "https://example.com/avatar.jpg" },
+                "followersTwitter": { "type": "integer", "example": 10000 },
+                "followersKOL": { "type": "integer", "example": 5000 },
+                "avgProfitD": { "type": "integer", "example": 200 }
               }
             }
           }
-        },
+        ],
         "responses": {
           "201": { "description": "KOL added successfully" },
           "400": { "description": "Invalid request data" }
@@ -116,35 +116,29 @@ const swaggerDocument = {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "type": "integer",
             "description": "ID of the KOL"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": { "type": "string" },
-                  "username": { "type": "string" },
-                  "avatar": { "type": "string" },
-                  "followersTwitter": { "type": "integer" },
-                  "followersKOL": { "type": "integer" },
-                  "avgProfitD": { "type": "integer" }
-                }
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "username": { "type": "string" },
+                "avatar": { "type": "string" },
+                "followersTwitter": { "type": "integer" },
+                "followersKOL": { "type": "integer" },
+                "avgProfitD": { "type": "integer" }
               }
             }
           }
-        },
+        ],
         "responses": {
-          "200": {
-            "description": "KOL updated successfully"
-          },
-          "400": {
-            "description": "Invalid request data"
-          }
+          "200": { "description": "KOL updated successfully" },
+          "400": { "description": "Invalid request data" }
         }
       }
     },
@@ -220,26 +214,26 @@ const swaggerDocument = {
       "post": {
         "summary": "Add a new tweet for a KOL",
         "tags": ["Tweet"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["kolId", "content", "signal", "risk", "timestamp"],
-                "properties": {
-                  "kolId": { "type": "integer", "example": 1 },
-                  "content": { "type": "string", "example": "Bitcoin is pumping!" },
-                  "signal": { "type": "string", "enum": ["BUY", "SELL"], "example": "BUY" },
-                  "risk": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"], "example": "HIGH" },
-                  "timestamp": { "type": "string", "format": "date-time", "example": "2025-03-06T12:00:00Z" },
-                  "expired": { "type": "boolean", "example": false },
-                  "valid": { "type": "boolean", "example": true }
-                }
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["kolId", "content", "signal", "risk", "timestamp"],
+              "properties": {
+                "kolId": { "type": "integer", "example": 1 },
+                "content": { "type": "string", "example": "Bitcoin is pumping!" },
+                "signal": { "type": "string", "enum": ["BUY", "SELL"], "example": "BUY" },
+                "risk": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"], "example": "HIGH" },
+                "timestamp": { "type": "string", "format": "date-time", "example": "2025-03-06T12:00:00Z" },
+                "expired": { "type": "boolean", "example": false },
+                "valid": { "type": "boolean", "example": true }
               }
             }
           }
-        },
+        ],
         "responses": {
           "201": { "description": "Tweet added successfully" },
           "400": { "description": "Invalid request data" }
