@@ -16,48 +16,26 @@ const swaggerDocument = {
   },
   "host": "kolective-backend.vercel.app",
   "basePath": "/api",
-  "schemes": ["https"],
+  "schemes": ["https", "http"],
   "paths": {
-    "/kol/check": {
+    "/kol/seed": {
       "get": {
-        "summary": "Check if KOL data and tokens exist",
+        "summary": "Seed KOL data into the database",
         "tags": ["KOL"],
         "responses": {
           "200": {
-            "description": "KOL data checked successfully"
+            "description": "KOLs and tweets seeded successfully"
           }
         }
       }
     },
-    "/kol/init": {
+    "/kol": {
       "get": {
-        "summary": "Init or update KOL data",
+        "summary": "Retrieve all KOLs",
         "tags": ["KOL"],
         "responses": {
           "200": {
-            "description": "KOL data initialized or updated successfully"
-          }
-        }
-      }
-    },
-    "/kol/data": {
-      "get": {
-        "summary": "Retrieve all KOL data with trading history",
-        "tags": ["KOL"],
-        "responses": {
-          "200": {
-            "description": "List of KOL data"
-          }
-        }
-      }
-    },
-    "/kol/fill": {
-      "get": {
-        "summary": "Fill empty KOL data fields with random values",
-        "tags": ["KOL"],
-        "responses": {
-          "200": {
-            "description": "KOL data fields filled successfully"
+            "description": "List of all KOLs retrieved successfully"
           }
         }
       }
@@ -71,15 +49,16 @@ const swaggerDocument = {
             "in": "path",
             "name": "username",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Twitter username of the KOL"
           }
         ],
         "responses": {
           "200": {
             "description": "KOL data retrieved successfully"
+          },
+          "404": {
+            "description": "KOL not found"
           }
         }
       }
@@ -93,101 +72,212 @@ const swaggerDocument = {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": {
-              "type": "integer"
-            },
+            "schema": { "type": "integer" },
             "description": "ID of the KOL"
           }
         ],
         "responses": {
           "200": {
             "description": "KOL data retrieved successfully"
+          },
+          "404": {
+            "description": "KOL not found"
           }
         }
       }
     },
-    "/kol/update": {
+    "/kol/add": {
       "post": {
-        "summary": "Update trading data for a specific KOL",
+        "summary": "Add a new KOL",
         "tags": ["KOL"],
-        "responses": {
-          "200": {
-            "description": "KOL trading data updated successfully"
-          }
-        }
-      }
-    },
-    "/kol/update-all": {
-      "post": {
-        "summary": "Update all KOL data",
-        "tags": ["KOL"],
-        "responses": {
-          "200": {
-            "description": "All KOL data updated successfully"
-          }
-        }
-      }
-    },
-    "/token/data": {
-      "get": {
-        "summary": "Retrieve a list of tokens",
-        "description": "Returns an array of tokens with their metadata.",
-        "tags": ["Tokens"],
-        "responses": {
-          "200": {
-            "description": "A list of tokens.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": { "type": "string" },
-                      "symbol": { "type": "string" },
-                      "address": { "type": "string" },
-                      "chain": { "type": "string" },
-                      "decimals": { "type": "integer" },
-                      "logoURI": { "type": "string" },
-                      "price": { "type": "number" }
-                    }
-                  }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "username": { "type": "string" },
+                  "avatar": { "type": "string" },
+                  "followersTwitter": { "type": "integer" },
+                  "followersKOL": { "type": "integer" },
+                  "avgProfitD": { "type": "integer" }
                 }
               }
             }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "KOL added successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      }
+    },
+    "/kol/update/{id}": {
+      "put": {
+        "summary": "Update KOL data",
+        "tags": ["KOL"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the KOL"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "username": { "type": "string" },
+                  "avatar": { "type": "string" },
+                  "followersTwitter": { "type": "integer" },
+                  "followersKOL": { "type": "integer" },
+                  "avgProfitD": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "KOL updated successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      }
+    },
+    "/kol/delete/{id}": {
+      "delete": {
+        "summary": "Delete a KOL",
+        "tags": ["KOL"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the KOL"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "KOL deleted successfully"
+          },
+          "404": {
+            "description": "KOL not found"
+          }
+        }
+      }
+    },
+    "/kol/deleteAll": {
+      "delete": {
+        "summary": "Delete all KOLs",
+        "tags": ["KOL"],
+        "responses": {
+          "200": {
+            "description": "All KOLs deleted successfully"
+          }
+        }
+      }
+    },
+    "/tweet": {
+      "get": {
+        "summary": "Retrieve all tweets",
+        "tags": ["Tweet"],
+        "responses": {
+          "200": {
+            "description": "List of all tweets retrieved successfully"
+          }
+        }
+      }
+    },
+    "/tweet/kol/{id}": {
+      "get": {
+        "summary": "Retrieve tweets by KOL ID",
+        "tags": ["Tweet"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the KOL"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tweets retrieved successfully"
+          },
+          "404": {
+            "description": "No tweets found for the given KOL ID"
+          }
+        }
+      }
+    },
+    "/tweet/add": {
+      "post": {
+        "summary": "Add a new tweet for a KOL",
+        "tags": ["Tweet"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kolId": { "type": "integer" },
+                  "content": { "type": "string" },
+                  "signal": { "type": "string", "enum": ["BUY", "SELL"] },
+                  "risk": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+                  "timestamp": { "type": "integer" },
+                  "expired": { "type": "boolean" },
+                  "valid": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tweet added successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
           }
         }
       }
     },
     "/token/init": {
       "get": {
-        "summary": "Initialize token data",
-        "tags": ["Tokens"],
+        "summary": "Initialize tokens",
+        "tags": ["Token"],
         "responses": {
           "200": {
-            "description": "Token initialization successful"
+            "description": "Tokens initialized successfully"
           }
         }
       }
     },
-    "/token/address/{address}": {
+    "/token/data": {
       "get": {
-        "summary": "Retrieve token data by address",
-        "tags": ["Tokens"],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "address",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Token address"
-          }
-        ],
+        "summary": "Retrieve all tokens",
+        "tags": ["Token"],
         "responses": {
           "200": {
-            "description": "Token data retrieved successfully"
+            "description": "List of all tokens retrieved successfully"
           }
         }
       }
