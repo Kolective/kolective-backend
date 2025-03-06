@@ -14,7 +14,8 @@ const swaggerDocument = {
     "title": "Kolective Management API",
     "description": "API documentation for managing KOL data, token trading, and statistics"
   },
-  "host": "kolective-backend.vercel.app",
+  // "host": "kolective-backend.vercel.app",
+  "host": "localhost:5000",
   "basePath": "/api",
   "schemes": ["https", "http"],
   "paths": {
@@ -261,7 +262,18 @@ const swaggerDocument = {
           }
         }
       }
-    }
+    },
+    "/token/deleteAll": {
+      "delete": {
+        "summary": "Delete all tokens",
+        "tags": ["Token"],
+        "responses": {
+          "200": {
+            "description": "All tokens deleted successfully"
+          }
+        }
+      }
+    },
   }
 }
 

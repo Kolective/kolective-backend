@@ -25,8 +25,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use((req, res, next) => {
   // Override the default res.json method
   const originalJson = res.json;
-  res.json = function(obj) {
-    return originalJson.call(this, JSON.parse(JSON.stringify(obj, (key, value) => 
+  res.json = function (obj) {
+    return originalJson.call(this, JSON.parse(JSON.stringify(obj, (key, value) =>
       typeof value === 'bigint' ? value.toString() : value
     )));
   };
@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 
 // Helper function to safely serialize data with BigInt values
 const serializeData = (data: any) => {
-  return JSON.parse(JSON.stringify(data, (key, value) => 
+  return JSON.parse(JSON.stringify(data, (key, value) =>
     typeof value === 'bigint' ? value.toString() : value
   ));
 };
@@ -78,6 +78,17 @@ export const getTokens = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteAllTokens = async (req: Request, res: Response) => {
+  try {
+    const result = await prisma.token.deleteMany();
+    res.json({ message: "All tokens deleted", count: result.count });
+  }
+  catch (error) {
+    console.error("Error deleting all tokens:", error);
+    res.status(500).json({ error: "Failed to delete all tokens" });
+  }
+}
+
 const generateTweetContent = (
   tokenSymbol: string,
   risk: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE",
@@ -117,7 +128,7 @@ const generateTweetContent = (
 
   // Assign weights based on risk level
   let phrasePool = [...generalPhrases]; // Default
-  
+
   if (risk === "CONSERVATIVE") {
     phrasePool.push(...bullishPhrases);
   } else if (risk === "BALANCED") {
@@ -128,7 +139,7 @@ const generateTweetContent = (
 
   // Pick a random phrase and adjust based on buy/sell
   let tweet = phrasePool[Math.floor(Math.random() * phrasePool.length)];
-  
+
   if (signal === "BUY") {
     tweet = `🚀 ${tweet} #Bullish`;
   } else {
@@ -268,20 +279,20 @@ export const seedKOL = async (req: Request, res: Response) => {
 
 export const getAllKOL = async (req: Request, res: Response) => {
   try {
-    const kols = await prisma.kOL.findMany({ 
-      include: { 
+    const kols = await prisma.kOL.findMany({
+      include: {
         tweets: {
           include: {
             token: true
           }
-        } 
-      } 
+        }
+      }
     });
-    
+
     if (!kols || kols.length === 0) {
       res.status(404).json({ message: "No KOLs found" });
     }
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ kols: serializeData(kols) });
   } catch (error) {
@@ -296,8 +307,8 @@ export const getKOLByUsername = async (req: Request, res: Response) => {
     if (!username) {
       res.status(400).json({ error: "Username parameter is required" });
     }
-    
-    const kol = await prisma.kOL.findUnique({ 
+
+    const kol = await prisma.kOL.findUnique({
       where: { username },
       include: {
         tweets: {
@@ -307,11 +318,11 @@ export const getKOLByUsername = async (req: Request, res: Response) => {
         }
       }
     });
-    
+
     if (!kol) {
       res.status(404).json({ error: "KOL not found" });
     }
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ kol: serializeData(kol) });
   } catch (error) {
@@ -326,8 +337,8 @@ export const getKOLById = async (req: Request, res: Response) => {
     if (isNaN(id)) {
       res.status(400).json({ error: "Invalid ID format" });
     }
-    
-    const kol = await prisma.kOL.findUnique({ 
+
+    const kol = await prisma.kOL.findUnique({
       where: { id },
       include: {
         tweets: {
@@ -337,11 +348,11 @@ export const getKOLById = async (req: Request, res: Response) => {
         }
       }
     });
-    
+
     if (!kol) {
       res.status(404).json({ error: "KOL not found" });
     }
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ kol: serializeData(kol) });
   } catch (error) {
@@ -355,7 +366,7 @@ export const addKOL = async (req: Request, res: Response) => {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.status(400).json({ error: "Request body is required" });
     }
-    
+
     const kol = await prisma.kOL.create({ data: req.body });
     // Use the serialization helper to handle BigInt values
     res.status(201).json({ kol: serializeData(kol) });
@@ -376,21 +387,21 @@ export const updateKOL = async (req: Request, res: Response) => {
     if (isNaN(id)) {
       res.status(400).json({ error: "Invalid ID format" });
     }
-    
+
     if (!req.body || Object.keys(req.body).length === 0) {
       res.status(400).json({ error: "Request body is required" });
     }
-    
+
     const existingKOL = await prisma.kOL.findUnique({ where: { id } });
     if (!existingKOL) {
       res.status(404).json({ error: "KOL not found" });
     }
-    
-    const kol = await prisma.kOL.update({ 
-      where: { id }, 
-      data: req.body 
+
+    const kol = await prisma.kOL.update({
+      where: { id },
+      data: req.body
     });
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ kol: serializeData(kol) });
   } catch (error) {
@@ -410,18 +421,18 @@ export const deleteKOL = async (req: Request, res: Response) => {
     if (isNaN(id)) {
       res.status(400).json({ error: "Invalid ID format" });
     }
-    
+
     const existingKOL = await prisma.kOL.findUnique({ where: { id } });
     if (!existingKOL) {
       res.status(404).json({ error: "KOL not found" });
     }
-    
+
     // First delete associated tweets
     await prisma.tweet.deleteMany({ where: { kolId: id } });
-    
+
     // Then delete the KOL
     await prisma.kOL.delete({ where: { id } });
-    
+
     res.json({ message: "KOL and associated tweets deleted successfully" });
   } catch (error) {
     console.error("Error deleting KOL:", error);
@@ -433,11 +444,11 @@ export const deleteAllKOL = async (req: Request, res: Response) => {
   try {
     // First delete all tweets as they depend on KOLs
     await prisma.tweet.deleteMany();
-    
+
     // Then delete all KOLs
     const result = await prisma.kOL.deleteMany();
-    
-    res.json({ 
+
+    res.json({
       message: "All KOLs and associated tweets deleted successfully",
       count: result.count
     });
@@ -455,11 +466,11 @@ export const getAllTweet = async (req: Request, res: Response) => {
         token: true
       }
     });
-    
+
     if (!tweets || tweets.length === 0) {
       res.status(404).json({ message: "No tweets found" });
     }
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ tweets: serializeData(tweets) });
   } catch (error) {
@@ -474,24 +485,24 @@ export const getTweetByKOLId = async (req: Request, res: Response) => {
     if (isNaN(kolId)) {
       res.status(400).json({ error: "Invalid KOL ID format" });
     }
-    
+
     // Check if KOL exists
     const kolExists = await prisma.kOL.findUnique({ where: { id: kolId } });
     if (!kolExists) {
       res.status(404).json({ error: "KOL not found" });
     }
-    
-    const tweets = await prisma.tweet.findMany({ 
+
+    const tweets = await prisma.tweet.findMany({
       where: { kolId },
       include: {
         token: true
       }
     });
-    
+
     if (tweets.length === 0) {
       res.json({ message: "No tweets found for this KOL", tweets: [] });
     }
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ tweets: serializeData(tweets) });
   } catch (error) {
@@ -506,19 +517,19 @@ export const getTweetById = async (req: Request, res: Response) => {
     if (isNaN(id)) {
       res.status(400).json({ error: "Invalid tweet ID format" });
     }
-    
-    const tweet = await prisma.tweet.findUnique({ 
+
+    const tweet = await prisma.tweet.findUnique({
       where: { id },
       include: {
         kol: true,
         token: true
       }
     });
-    
+
     if (!tweet) {
       res.status(404).json({ error: "Tweet not found" });
     }
-    
+
     // Use the serialization helper to handle BigInt values
     res.json({ tweet: serializeData(tweet) });
   } catch (error) {
@@ -532,27 +543,27 @@ export const addTweetByKOLId = async (req: Request, res: Response) => {
     if (!req.body || Object.keys(req.body).length === 0) {
       res.status(400).json({ error: "Request body is required" });
     }
-    
+
     const { kolId, tokenId } = req.body;
-    
+
     if (!kolId || !tokenId) {
       res.status(400).json({ error: "kolId and tokenId are required" });
     }
-    
+
     // Check if KOL exists
     const kolExists = await prisma.kOL.findUnique({ where: { id: kolId } });
     if (!kolExists) {
       res.status(404).json({ error: "KOL not found" });
     }
-    
+
     // Check if token exists
     const tokenExists = await prisma.token.findUnique({ where: { id: tokenId } });
     if (!tokenExists) {
       res.status(404).json({ error: "Token not found" });
     }
-    
+
     const tweet = await prisma.tweet.create({ data: req.body });
-    
+
     // Use the serialization helper to handle BigInt values
     res.status(201).json({ tweet: serializeData(tweet) });
   } catch (error) {
@@ -567,6 +578,7 @@ setupSwagger(app);
 // TOKEN
 app.get("/api/token/init", initTokens);
 app.get("/api/token/data", getTokens);
+app.delete("/api/token/deleteAll", deleteAllTokens);
 
 // KOL
 app.get("/api/kol/seed", seedKOL);
