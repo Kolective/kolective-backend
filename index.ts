@@ -42,22 +42,25 @@ const serializeData = (data: any) => {
 
 export const initTokens = async (req: Request, res: Response) => {
   try {
-    for (const token of TOKEN_DATA) {
-      await prisma.token.upsert({
-        where: { addressToken: token.address },
-        update: {},
-        create: {
-          name: token.name,
-          symbol: token.symbol,
-          addressToken: token.address,
-          chain: token.chain,
-          decimals: token.decimals,
-          logo: token.logoURI,
-          priceChange24H: token.price,
-          tags: Array.isArray(token.tags) ? token.tags : [],
-        },
-      });
-    }
+    await Promise.all(
+      TOKEN_DATA.map((token) =>
+        prisma.token.upsert({
+          where: { addressToken: token.address },
+          update: {},
+          create: {
+            name: token.name,
+            symbol: token.symbol,
+            addressToken: token.address,
+            chain: token.chain,
+            decimals: token.decimals,
+            logo: token.logoURI,
+            priceChange24H: token.price,
+            tags: Array.isArray(token.tags) ? token.tags : [],
+          },
+        })
+      )
+    );
+
     res.json({ message: "Tokens initialized" });
   } catch (error) {
     console.error("Token initialization error:", error);
@@ -89,10 +92,12 @@ export const deleteAllTokens = async (req: Request, res: Response) => {
   }
 }
 
+type SignalType = "BUY" | "SELL";
+
 const generateTweetContent = (
   tokenSymbol: string,
   risk: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE",
-  signal: "BUY" | "SELL"
+  signal: SignalType
 ): string => {
   const bullishPhrases = [
     `Big money is moving into $${tokenSymbol} 🚀`,
@@ -177,17 +182,16 @@ export const seedKOL = async (req: Request, res: Response) => {
 
       const buyCount = Math.floor(Math.random() * (7 - 5 + 1)) + 5; // 5-7 buys
       const sellCount = Math.floor(Math.random() * (3 - 2 + 1)) + 2; // 2-3 sells
-
-      let tweets = [];
+      const tweets = [];
 
       for (let i = 0; i < buyCount; i++) {
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
-        const timestamp = getTimestamp(14 - i); // Ensuring order
+        const timestamp = getTimestamp(14 - i);
         tweets.push({
           kolId,
           tokenId: token.id,
           content: generateTweetContent(token.symbol, risk, "BUY"),
-          signal: "BUY" as any,
+          signal: "BUY" as SignalType,
           risk,
           timestamp,
           expired: timestamp < getTimestamp(7),
@@ -197,12 +201,12 @@ export const seedKOL = async (req: Request, res: Response) => {
 
       for (let i = 0; i < sellCount; i++) {
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
-        const timestamp = getTimestamp(14 - buyCount - i); // Ensuring sell comes after buy
+        const timestamp = getTimestamp(14 - buyCount - i);
         tweets.push({
           kolId,
           tokenId: token.id,
           content: generateTweetContent(token.symbol, risk, "SELL"),
-          signal: "SELL" as any,
+          signal: "SELL" as SignalType,
           risk,
           timestamp,
           expired: timestamp < getTimestamp(7),
@@ -210,41 +214,45 @@ export const seedKOL = async (req: Request, res: Response) => {
         });
       }
 
-      for (const tweet of tweets) {
-        await prisma.tweet.create({ data: { ...tweet, risk: risk as any } });
-      }
+      await prisma.tweet.createMany({ data: tweets });
 
       return tweets.length;
     };
 
     const createKOLs = async (recommendation: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
       const count = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
-      const kols = [];
-      let totalTweets = 0;
+      const kolsData = Array.from({ length: count }).map((_, i) => ({
+        name: `KOL ${recommendation} ${i + 1}`,
+        username: `kol_${recommendation.toLowerCase()}_${i + 1}`,
+        avatar: `https://picsum.photos/200/200?random=${i + 1}`,
+        followersTwitter: Math.floor(Math.random() * 1000000),
+        followersKOL: Math.floor(Math.random() * 10000),
+        avgProfitD: Math.floor(Math.random() * 50),
+        riskRecommendation: recommendation,
+      }));
 
-      for (let i = 0; i < count; i++) {
-        const kol = await prisma.kOL.create({
-          data: {
-            name: `KOL ${recommendation} ${i + 1}`,
-            username: `kol_${recommendation.toLowerCase()}_${i + 1}`,
-            avatar: `https://picsum.photos/200/200?random=${i + 1}`,
-            followersTwitter: Math.floor(Math.random() * 1000000),
-            followersKOL: Math.floor(Math.random() * 10000),
-            avgProfitD: Math.floor(Math.random() * 50),
-            riskRecommendation: recommendation,
-          },
-        });
+      const createdKOLs = await prisma.kOL.createMany({
+        data: kolsData,
+        skipDuplicates: true,
+      });
 
-        kols.push(kol);
-        totalTweets += await createTweets(kol.id, recommendation);
-      }
+      const kols = await prisma.kOL.findMany({
+        where: { riskRecommendation: recommendation },
+        select: { id: true, followersKOL: true, avgProfitD: true },
+      });
 
-      return { kols, totalTweets };
+      const tweetCounts = await Promise.all(
+        kols.map((kol) => createTweets(kol.id, recommendation))
+      );
+
+      return { kols, totalTweets: tweetCounts.reduce((acc, count) => acc + count, 0) };
     };
 
-    const conservative = await createKOLs("CONSERVATIVE");
-    const balanced = await createKOLs("BALANCED");
-    const aggressive = await createKOLs("AGGRESSIVE");
+    const [conservative, balanced, aggressive] = await Promise.all([
+      createKOLs("CONSERVATIVE"),
+      createKOLs("BALANCED"),
+      createKOLs("AGGRESSIVE"),
+    ]);
 
     const allKOLs = [...conservative.kols, ...balanced.kols, ...aggressive.kols];
     const totalTweets = conservative.totalTweets + balanced.totalTweets + aggressive.totalTweets;
@@ -252,19 +260,20 @@ export const seedKOL = async (req: Request, res: Response) => {
     const sortedByFollowers = [...allKOLs].sort((a, b) => b.followersKOL - a.followersKOL);
     const sortedByProfit = [...allKOLs].sort((a, b) => b.avgProfitD - a.avgProfitD);
 
-    for (let i = 0; i < sortedByFollowers.length; i++) {
-      await prisma.kOL.update({
-        where: { id: sortedByFollowers[i].id },
-        data: { rankFollowersKOL: i + 1 },
-      });
-    }
-
-    for (let i = 0; i < sortedByProfit.length; i++) {
-      await prisma.kOL.update({
-        where: { id: sortedByProfit[i].id },
-        data: { rankAvgProfitD: i + 1 },
-      });
-    }
+    await Promise.all([
+      ...sortedByFollowers.map((kol, i) =>
+        prisma.kOL.update({
+          where: { id: kol.id },
+          data: { rankFollowersKOL: i + 1 },
+        })
+      ),
+      ...sortedByProfit.map((kol, i) =>
+        prisma.kOL.update({
+          where: { id: kol.id },
+          data: { rankAvgProfitD: i + 1 },
+        })
+      ),
+    ]);
 
     res.json({
       message: "KOLs and tweets seeded successfully with ranking data",
