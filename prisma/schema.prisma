@@ -19,9 +19,9 @@ enum SignalType {
 }
 
 enum RiskLevel {
-  LOW
-  MEDIUM
-  HIGH
+  CONSERVATIVE
+  BALANCED
+  AGGRESSIVE
 }
 
 model KOL {

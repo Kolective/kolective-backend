@@ -18,6 +18,7 @@ const swaggerDocument = {
   // "host": "localhost:5000",
   "basePath": "/api",
   "schemes": ["https", "http"],
+  // "schemes": ["http"],
   "paths": {
     "/kol/seed": {
       "get": {
