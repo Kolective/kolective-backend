@@ -17,7 +17,7 @@ const swaggerDocument = {
   "host": "kolective-backend.vercel.app",
   // "host": "localhost:5000",
   "basePath": "/api",
-  "schemes": ["https", "http"],
+  "schemes": ["https"],
   // "schemes": ["http"],
   "paths": {
     "/kol/seed": {
