@@ -78,44 +78,139 @@ export const getTokens = async (req: Request, res: Response) => {
   }
 };
 
+const generateTweetContent = (
+  tokenSymbol: string,
+  risk: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE",
+  signal: "BUY" | "SELL"
+): string => {
+  const bullishPhrases = [
+    `Big money is moving into $${tokenSymbol} 🚀`,
+    `$${tokenSymbol} showing strong accumulation—bullish sign? 📈`,
+    `Is $${tokenSymbol} gearing up for a breakout? 👀`,
+    `Looks like $${tokenSymbol} whales are stacking. Something’s brewing! 🐳`,
+    `$${tokenSymbol} just hit a key support level. Rebound incoming? 🔥`,
+  ];
+
+  const bearishPhrases = [
+    `$${tokenSymbol} might be losing steam—watch key levels! ⚠️`,
+    `Seeing some big sell orders on $${tokenSymbol}. Be cautious! 🧐`,
+    `$${tokenSymbol} rejected at resistance. Could be a short opportunity. 📉`,
+    `$${tokenSymbol} whales unloading bags. Distribution phase? 👀`,
+    `$${tokenSymbol} dropping volume… Market cooling off? ❄️`,
+  ];
+
+  const generalPhrases = [
+    `Interesting moves in $${tokenSymbol} today. Keep an eye on it! 👁️`,
+    `Market volatility is wild! $${tokenSymbol} reacting strongly. 🌊`,
+    `Devs are cooking something with $${tokenSymbol} 🔥 What’s next?`,
+    `Narratives shifting towards $${tokenSymbol}. Early signs of hype? 🚀`,
+    `Watching $${tokenSymbol} closely… Something’s about to happen. 👀`,
+  ];
+
+  const memePhrases = [
+    `$${tokenSymbol} to the moon? 🌕 Or just another fakeout? 😅`,
+    `CT says $${tokenSymbol} is the next big thing… But do your own research! 🧠`,
+    `$${tokenSymbol} bagholders right now: "We’re so back" 😎`,
+    `$${tokenSymbol} traders in full cope mode 😭 Will it recover?`,
+    `Every cycle, someone says $${tokenSymbol} is dead… And then 🚀`,
+  ];
+
+  // Assign weights based on risk level
+  let phrasePool = [...generalPhrases]; // Default
+  
+  if (risk === "CONSERVATIVE") {
+    phrasePool.push(...bullishPhrases);
+  } else if (risk === "BALANCED") {
+    phrasePool.push(...bullishPhrases, ...bearishPhrases);
+  } else if (risk === "AGGRESSIVE") {
+    phrasePool.push(...bullishPhrases, ...bearishPhrases, ...memePhrases);
+  }
+
+  // Pick a random phrase and adjust based on buy/sell
+  let tweet = phrasePool[Math.floor(Math.random() * phrasePool.length)];
+  
+  if (signal === "BUY") {
+    tweet = `🚀 ${tweet} #Bullish`;
+  } else {
+    tweet = `⚠️ ${tweet} #CryptoWarning`;
+  }
+
+  return tweet;
+};
+
 export const seedKOL = async (req: Request, res: Response) => {
   try {
-    const tokens = await prisma.token.findMany();
+    const tokens = await prisma.token.findMany({
+      select: { id: true, symbol: true, tags: true },
+    });
+
     if (tokens.length === 0) {
       res.status(400).json({ error: "No tokens found. Please initialize tokens first." });
     }
 
-    const getRandomToken = () => tokens[Math.floor(Math.random() * tokens.length)];
     const getTimestamp = (daysAgo: number) => Math.floor(Date.now() / 1000) - daysAgo * 86400;
 
-    const createTweets = async (kolId: number) => {
-      const tweetData = Array.from({ length: 5 }).map(() => {
-        const token = getRandomToken();
-        const timestamp = getTimestamp(Math.floor(Math.random() * 14));
-        return {
-          kolId: kolId,
+    const filterTokensByRisk = (risk: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
+      return tokens.filter(token => {
+        const tags = token.tags || [];
+        if (risk === "CONSERVATIVE") return tags.includes("TOP TIER");
+        if (risk === "BALANCED") return tags.includes("TOP 10 MARKET") && tags.includes("TOP TIER");
+        if (risk === "AGGRESSIVE") return !tags.includes("WRAPPED TOKEN") && !tags.includes("NATIVE TOKEN");
+        return false;
+      });
+    };
+
+    const createTweets = async (kolId: number, risk: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
+      const validTokens = filterTokensByRisk(risk);
+      if (validTokens.length === 0) return 0;
+
+      const buyCount = Math.floor(Math.random() * (7 - 5 + 1)) + 5; // 5-7 buys
+      const sellCount = Math.floor(Math.random() * (3 - 2 + 1)) + 2; // 2-3 sells
+
+      let tweets = [];
+
+      for (let i = 0; i < buyCount; i++) {
+        const token = validTokens[Math.floor(Math.random() * validTokens.length)];
+        const timestamp = getTimestamp(14 - i); // Ensuring order
+        tweets.push({
+          kolId,
           tokenId: token.id,
-          content: `Tweet about ${token.symbol}`,
-          signal: Math.random() > 0.5 ? "BUY" as const : "SELL" as const,
-          risk: ["LOW", "MEDIUM", "HIGH"][Math.floor(Math.random() * 3)] as any,
-          timestamp: timestamp,
+          content: generateTweetContent(token.symbol, risk, "BUY"),
+          signal: "BUY" as any,
+          risk,
+          timestamp,
           expired: timestamp < getTimestamp(7),
           valid: Math.random() > 0.7,
-        };
-      });
-      
-      for (const tweet of tweetData) {
-        await prisma.tweet.create({ data: tweet });
+        });
       }
-      
-      return tweetData.length;
+
+      for (let i = 0; i < sellCount; i++) {
+        const token = validTokens[Math.floor(Math.random() * validTokens.length)];
+        const timestamp = getTimestamp(14 - buyCount - i); // Ensuring sell comes after buy
+        tweets.push({
+          kolId,
+          tokenId: token.id,
+          content: generateTweetContent(token.symbol, risk, "SELL"),
+          signal: "SELL" as any,
+          risk,
+          timestamp,
+          expired: timestamp < getTimestamp(7),
+          valid: Math.random() > 0.7,
+        });
+      }
+
+      for (const tweet of tweets) {
+        await prisma.tweet.create({ data: { ...tweet, risk: risk as any } });
+      }
+
+      return tweets.length;
     };
 
     const createKOLs = async (recommendation: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
-      const count = Math.floor(Math.random() * (5 - 3 + 1)) + 3; 
+      const count = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
       const kols = [];
       let totalTweets = 0;
-      
+
       for (let i = 0; i < count; i++) {
         const kol = await prisma.kOL.create({
           data: {
@@ -128,52 +223,42 @@ export const seedKOL = async (req: Request, res: Response) => {
             riskRecommendation: recommendation,
           },
         });
-        
-        kols.push(kol);
 
-        const tweetCount = await createTweets(kol.id);
-        totalTweets += tweetCount;
+        kols.push(kol);
+        totalTweets += await createTweets(kol.id, recommendation);
       }
-      
+
       return { kols, totalTweets };
     };
 
     const conservative = await createKOLs("CONSERVATIVE");
     const balanced = await createKOLs("BALANCED");
     const aggressive = await createKOLs("AGGRESSIVE");
-    
-    const allKOLs = [
-      ...conservative.kols,
-      ...balanced.kols, 
-      ...aggressive.kols
-    ];
-    
+
+    const allKOLs = [...conservative.kols, ...balanced.kols, ...aggressive.kols];
     const totalTweets = conservative.totalTweets + balanced.totalTweets + aggressive.totalTweets;
-    
+
     const sortedByFollowers = [...allKOLs].sort((a, b) => b.followersKOL - a.followersKOL);
-    
     const sortedByProfit = [...allKOLs].sort((a, b) => b.avgProfitD - a.avgProfitD);
-    
+
     for (let i = 0; i < sortedByFollowers.length; i++) {
-      const kol = sortedByFollowers[i];
       await prisma.kOL.update({
-        where: { id: kol.id },
-        data: { rankFollowersKOL: i + 1 }
+        where: { id: sortedByFollowers[i].id },
+        data: { rankFollowersKOL: i + 1 },
       });
     }
-    
+
     for (let i = 0; i < sortedByProfit.length; i++) {
-      const kol = sortedByProfit[i];
       await prisma.kOL.update({
-        where: { id: kol.id },
-        data: { rankAvgProfitD: i + 1 }
+        where: { id: sortedByProfit[i].id },
+        data: { rankAvgProfitD: i + 1 },
       });
     }
 
     res.json({
       message: "KOLs and tweets seeded successfully with ranking data",
       totalKOLs: allKOLs.length,
-      totalTweets: totalTweets
+      totalTweets,
     });
   } catch (error) {
     console.error("Error seeding KOLs and tweets:", error);
