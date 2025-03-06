@@ -23,9 +23,7 @@ const swaggerDocument = {
         "summary": "Seed KOL data into the database",
         "tags": ["KOL"],
         "responses": {
-          "200": {
-            "description": "KOLs and tweets seeded successfully"
-          }
+          "200": { "description": "KOLs and tweets seeded successfully" }
         }
       }
     },
@@ -34,9 +32,7 @@ const swaggerDocument = {
         "summary": "Retrieve all KOLs",
         "tags": ["KOL"],
         "responses": {
-          "200": {
-            "description": "List of all KOLs retrieved successfully"
-          }
+          "200": { "description": "List of all KOLs retrieved successfully" }
         }
       }
     },
@@ -54,12 +50,8 @@ const swaggerDocument = {
           }
         ],
         "responses": {
-          "200": {
-            "description": "KOL data retrieved successfully"
-          },
-          "404": {
-            "description": "KOL not found"
-          }
+          "200": { "description": "KOL data retrieved successfully" },
+          "404": { "description": "KOL not found" }
         }
       }
     },
@@ -96,25 +88,22 @@ const swaggerDocument = {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["name", "username", "avatar", "followersTwitter", "followersKOL", "avgProfitD"],
                 "properties": {
-                  "name": { "type": "string" },
-                  "username": { "type": "string" },
-                  "avatar": { "type": "string" },
-                  "followersTwitter": { "type": "integer" },
-                  "followersKOL": { "type": "integer" },
-                  "avgProfitD": { "type": "integer" }
+                  "name": { "type": "string", "example": "John Doe" },
+                  "username": { "type": "string", "example": "johndoe" },
+                  "avatar": { "type": "string", "example": "https://example.com/avatar.jpg" },
+                  "followersTwitter": { "type": "integer", "example": 10000 },
+                  "followersKOL": { "type": "integer", "example": 5000 },
+                  "avgProfitD": { "type": "integer", "example": 200 }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "KOL added successfully"
-          },
-          "400": {
-            "description": "Invalid request data"
-          }
+          "201": { "description": "KOL added successfully" },
+          "400": { "description": "Invalid request data" }
         }
       }
     },
@@ -237,26 +226,23 @@ const swaggerDocument = {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["kolId", "content", "signal", "risk", "timestamp"],
                 "properties": {
-                  "kolId": { "type": "integer" },
-                  "content": { "type": "string" },
-                  "signal": { "type": "string", "enum": ["BUY", "SELL"] },
-                  "risk": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
-                  "timestamp": { "type": "integer" },
-                  "expired": { "type": "boolean" },
-                  "valid": { "type": "boolean" }
+                  "kolId": { "type": "integer", "example": 1 },
+                  "content": { "type": "string", "example": "Bitcoin is pumping!" },
+                  "signal": { "type": "string", "enum": ["BUY", "SELL"], "example": "BUY" },
+                  "risk": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"], "example": "HIGH" },
+                  "timestamp": { "type": "string", "format": "date-time", "example": "2025-03-06T12:00:00Z" },
+                  "expired": { "type": "boolean", "example": false },
+                  "valid": { "type": "boolean", "example": true }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Tweet added successfully"
-          },
-          "400": {
-            "description": "Invalid request data"
-          }
+          "201": { "description": "Tweet added successfully" },
+          "400": { "description": "Invalid request data" }
         }
       }
     },
