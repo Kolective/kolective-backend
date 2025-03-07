@@ -100,35 +100,39 @@ const generateTweetContent = (
   signal: SignalType
 ): string => {
   const bullishPhrases = [
-    `Big money is moving into $${tokenSymbol} 🚀`,
-    `$${tokenSymbol} showing strong accumulation—bullish sign? 📈`,
-    `Is $${tokenSymbol} gearing up for a breakout? 👀`,
-    `Looks like $${tokenSymbol} whales are stacking. Something’s brewing! 🐳`,
-    `$${tokenSymbol} just hit a key support level. Rebound incoming? 🔥`,
+    `🚀 $${tokenSymbol} is heating up! Bulls stepping in strong! 🔥`,
+    `FOMO kicking in? $${tokenSymbol} looks primed for a move! 📈`,
+    `$${tokenSymbol} just broke resistance! Next stop: 🚀🚀🚀`,
+    `Whales are quietly stacking $${tokenSymbol}... Something big incoming? 🐳`,
+    `Looks like $${tokenSymbol} is waking up! Don't miss the train! 🚂`,
+    `Market sentiment shifting—$${tokenSymbol} showing strength! 👀`,
   ];
 
   const bearishPhrases = [
-    `$${tokenSymbol} might be losing steam—watch key levels! ⚠️`,
-    `Seeing some big sell orders on $${tokenSymbol}. Be cautious! 🧐`,
-    `$${tokenSymbol} rejected at resistance. Could be a short opportunity. 📉`,
-    `$${tokenSymbol} whales unloading bags. Distribution phase? 👀`,
-    `$${tokenSymbol} dropping volume… Market cooling off? ❄️`,
+    `⚠️ $${tokenSymbol} struggling at key levels. Breakout or breakdown? 🤔`,
+    `Sell pressure increasing on $${tokenSymbol}… Is this a fake pump? 😬`,
+    `$${tokenSymbol} just hit resistance hard. Reversal incoming? 📉`,
+    `Smart money exiting? Seeing big outflows from $${tokenSymbol}... 🚨`,
+    `Weak hands getting shaken out of $${tokenSymbol}. Panic or opportunity? 🧐`,
+    `$${tokenSymbol} showing signs of exhaustion. Bulls running out of steam? ❄️`,
   ];
 
   const generalPhrases = [
-    `Interesting moves in $${tokenSymbol} today. Keep an eye on it! 👁️`,
-    `Market volatility is wild! $${tokenSymbol} reacting strongly. 🌊`,
-    `Devs are cooking something with $${tokenSymbol} 🔥 What’s next?`,
-    `Narratives shifting towards $${tokenSymbol}. Early signs of hype? 🚀`,
-    `Watching $${tokenSymbol} closely… Something’s about to happen. 👀`,
+    `$${tokenSymbol} catching attention—big move incoming? 👀`,
+    `Something is happening with $${tokenSymbol}… Do you see it too? 🤯`,
+    `Crypto market wild as always! $${tokenSymbol} making moves. 🔥`,
+    `$${tokenSymbol} traders on edge today. What's next? 📊`,
+    `Some interesting action on $${tokenSymbol} lately. Accumulation or distribution?`,
+    `Devs dropping hints about $${tokenSymbol}… What's cooking? 🍳`,
   ];
 
   const memePhrases = [
-    `$${tokenSymbol} to the moon? 🌕 Or just another fakeout? 😅`,
-    `CT says $${tokenSymbol} is the next big thing… But do your own research! 🧠`,
-    `$${tokenSymbol} bagholders right now: "We’re so back" 😎`,
-    `$${tokenSymbol} traders in full cope mode 😭 Will it recover?`,
-    `Every cycle, someone says $${tokenSymbol} is dead… And then 🚀`,
+    `$${tokenSymbol} to the moon? 🌕 Or just another trap? 😂`,
+    `$${tokenSymbol} believers right now: "We are so back!" vs. "We are so doomed" 🤡`,
+    `Crypto Twitter says $${tokenSymbol} is 100x… But they also said that about Luna 💀`,
+    `Bagholders watching $${tokenSymbol} dip be like: "It’s a long-term hold" 😭`,
+    `$${tokenSymbol} - is this finally the moment? Or another fakeout? 🚨`,
+    `Every cycle someone says $${tokenSymbol} is dead… and then 🚀`,
   ];
 
   // Assign weights based on risk level
@@ -142,13 +146,28 @@ const generateTweetContent = (
     phrasePool.push(...bullishPhrases, ...bearishPhrases, ...memePhrases);
   }
 
-  // Pick a random phrase and adjust based on buy/sell
+  // Pick a random phrase
   let tweet = phrasePool[Math.floor(Math.random() * phrasePool.length)];
 
+  // Add BUY or SELL context
   if (signal === "BUY") {
-    tweet = `🚀 ${tweet} #Bullish`;
+    const buyPhrases = [
+      `🔥 Time to load up? $${tokenSymbol} looking bullish! #HODL`,
+      `🚀 All aboard! $${tokenSymbol} is ready to take off! #Bullish`,
+      `📈 Accumulation mode ON! $${tokenSymbol} showing strength. #Crypto`,
+      `👀 Smart money is watching $${tokenSymbol}. Are you? #DYOR`,
+      `🐂 Bulls taking charge—$${tokenSymbol} might be the next mover! #LFG`,
+    ];
+    tweet = `🚀 ${tweet} ${buyPhrases[Math.floor(Math.random() * buyPhrases.length)]}`;
   } else {
-    tweet = `⚠️ ${tweet} #CryptoWarning`;
+    const sellPhrases = [
+      `⚠️ Caution! $${tokenSymbol} showing signs of weakness. #CryptoWarning`,
+      `📉 Could be a trap! Watch out for $${tokenSymbol} price action. #Bearish`,
+      `🚨 Risk management is key! $${tokenSymbol} looking shaky. #StaySafe`,
+      `💨 Exit liquidity forming? Be careful with $${tokenSymbol}. #CryptoMarket`,
+      `🧐 Smart money taking profits? $${tokenSymbol} looking suspicious. #WatchClosely`,
+    ];
+    tweet = `⚠️ ${tweet} ${sellPhrases[Math.floor(Math.random() * sellPhrases.length)]}`;
   }
 
   return tweet;
@@ -187,6 +206,7 @@ export const seedKOL = async (req: Request, res: Response) => {
       for (let i = 0; i < buyCount; i++) {
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
         const timestamp = getTimestamp(14 - i);
+        const expired = timestamp < getTimestamp(7);
         tweets.push({
           kolId,
           tokenId: token.id,
@@ -195,13 +215,14 @@ export const seedKOL = async (req: Request, res: Response) => {
           risk,
           timestamp,
           expired: timestamp < getTimestamp(7),
-          valid: Math.random() > 0.7,
+          valid: expired || Math.random() > 0.7,
         });
       }
 
       for (let i = 0; i < sellCount; i++) {
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
         const timestamp = getTimestamp(14 - buyCount - i);
+        const expired = timestamp < getTimestamp(7);
         tweets.push({
           kolId,
           tokenId: token.id,
@@ -210,7 +231,7 @@ export const seedKOL = async (req: Request, res: Response) => {
           risk,
           timestamp,
           expired: timestamp < getTimestamp(7),
-          valid: Math.random() > 0.7,
+          valid: expired || Math.random() > 0.7,
         });
       }
 
