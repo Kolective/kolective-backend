@@ -38,6 +38,7 @@ model KOL {
   rankAvgProfitD     Int?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  KOLFollowed        KOLFollowed[]
 
   @@index([username])
   @@index([followersTwitter])
@@ -45,17 +46,17 @@ model KOL {
 }
 
 model Tweet {
-  id           Int      @id @default(autoincrement())
-  tokenId      Int
-  content      String
-  signal       SignalType
-  risk         RiskLevel
-  timestamp    BigInt
-  expired      Boolean  @default(false)
-  valid        Boolean  @default(true)
-  kolId        Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        Int        @id @default(autoincrement())
+  tokenId   Int
+  content   String
+  signal    SignalType
+  risk      RiskLevel
+  timestamp BigInt
+  expired   Boolean    @default(false)
+  valid     Boolean    @default(true)
+  kolId     Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   kol   KOL   @relation(fields: [kolId], references: [id], onDelete: Cascade)
   token Token @relation(fields: [tokenId], references: [id])
@@ -64,8 +65,8 @@ model Tweet {
 }
 
 model Token {
-  id             Int     @id @default(autoincrement())
-  addressToken   String  @unique
+  id             Int      @id @default(autoincrement())
+  addressToken   String   @unique
   symbol         String
   name           String
   decimals       Int
@@ -75,4 +76,17 @@ model Token {
   tags           String[]
 
   tweets Tweet[]
+}
+
+model KOLFollowed {
+  id          Int      @id @default(autoincrement())
+  kolId       Int
+  userAddress String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  kol KOL @relation(fields: [kolId], references: [id])
+
+  @@unique([kolId, userAddress]) 
+  @@index([userAddress])
 }

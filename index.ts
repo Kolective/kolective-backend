@@ -202,14 +202,14 @@ export const seedKOL = async (req: Request, res: Response) => {
         if (risk === "BALANCED") return rand < 0.7 ? "BALANCED" : rand < 0.9 ? "CONSERVATIVE" : "AGGRESSIVE";
         return rand < 0.7 ? "AGGRESSIVE" : rand < 0.9 ? "BALANCED" : "CONSERVATIVE";
       };
-    
+
       const filterTokensForAggressive = () => {
         return tokens.filter(token => !(token.tags && token.tags.length > 0));
       };
-    
+
       const tweets = [];
       let lastTimestamp = getTimestamp(14);
-    
+
       // Generate Buy tweets
       const buyCount = Math.floor(Math.random() * (15 - 13 + 1)) + 13; // 13-15 buys
       for (let i = 0; i < buyCount; i++) {
@@ -217,7 +217,7 @@ export const seedKOL = async (req: Request, res: Response) => {
         let validTokens = tweetRisk === "AGGRESSIVE" ? filterTokensForAggressive() : filterTokensByRisk(tweetRisk);
         if (validTokens.length === 0) continue;
         const expired = lastTimestamp < getTimestamp(7);
-    
+
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
         tweets.push({
           kolId,
@@ -229,8 +229,8 @@ export const seedKOL = async (req: Request, res: Response) => {
           expired: expired,
           valid: expired || Math.random() > 0.7,
         });
-    
-        if (Math.random() > 0.5) { 
+
+        if (Math.random() > 0.5) {
           const sellTimestamp = lastTimestamp + Math.floor(Math.random() * (40 - 1 + 1)) * 3600;
           let sellRisk: any = selectRisk();
           let sellTokens = sellRisk === "AGGRESSIVE" ? filterTokensForAggressive() : filterTokensByRisk(sellRisk);
@@ -249,18 +249,18 @@ export const seedKOL = async (req: Request, res: Response) => {
             });
           }
         }
-    
-        lastTimestamp += Math.floor(Math.random() * (24 - 1 + 1)) * 3600; 
+
+        lastTimestamp += Math.floor(Math.random() * (24 - 1 + 1)) * 3600;
       }
-      
+
       // Create the tweets in the database
       await prisma.tweet.createMany({
         data: tweets,
         skipDuplicates: true,
       });
-    
+
       return tweets;
-    };    
+    };
 
     const createKOLs = async (recommendation: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
       const count = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
@@ -624,6 +624,59 @@ export const addTweetByKOLId = async (req: Request, res: Response) => {
   }
 };
 
+export const followKOL = async (req: Request, res: Response) => {
+  const { kolId, userAddress } = req.body;
+
+  try {
+    const follow = await prisma.kOLFollowed.create({
+      data: { kolId, userAddress },
+    });
+    res.json({ message: 'Followed successfully', follow });
+  } catch (error) {
+    console.error("Error following kol:", error);
+    res.status(500).json({ error: "Failed to following kol" });
+  }
+}
+
+export const unfollowKOL = async (req: Request, res: Response) => {
+  const { kolId, userAddress } = req.body;
+
+  try {
+    const follow = await prisma.kOLFollowed.deleteMany({
+      where: { kolId, userAddress },
+    });
+    res.json({ message: 'Unfollowed successfully', follow });
+  } catch (error) {
+    console.error("Error unfollowing kol:", error);
+    res.status(500).json({ error: "Failed to unfollow kol" });
+  }
+}
+
+export const getFollowedKOLByUserAddress = async (req: Request, res: Response) => {
+  const { userAddress } = req.params;
+
+  try {
+    const followedKOLs = await prisma.kOLFollowed.findMany({
+      where: { userAddress },
+      include: {
+        kol: {
+          include: {
+            tweets: {
+              include: {
+                token: true
+              }
+            }
+          }
+        }
+      }
+    });
+    res.json({ followedKOLs });
+  } catch (error) {
+    console.error("Error retrieving followed KOLs:", error);
+    res.status(500).json({ error: "Failed to retrieve followed KOLs" });
+  }
+}
+
 app.use(express.json());
 setupSwagger(app);
 
@@ -647,6 +700,11 @@ app.get("/api/tweet", getAllTweet);
 app.get("/api/tweet/kol/:id", getTweetByKOLId);
 app.get("/api/tweet/:id", getTweetById);
 app.post("/api/tweet/add", addTweetByKOLId);
+
+// KOL FOLLOWED
+app.post("/api/kol/follow", followKOL);
+app.delete("/api/kol/unfollow", unfollowKOL);
+app.get("/api/kol/followed/:userAddress", getFollowedKOLByUserAddress);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

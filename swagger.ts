@@ -178,6 +178,75 @@ const swaggerDocument = {
         }
       }
     },
+    "/kol/follow": {
+      "post": {
+        "summary": "Follow a KOL",
+        "tags": ["KOL"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["kolId", "userAddress"],
+              "properties": {
+                "kolId": { "type": "integer", "example": 1 },
+                "userAddress": { "type": "string", "example": "0x1234567890abcdef" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "KOL followed successfully" },
+          "400": { "description": "Invalid request data" }
+        }
+      }
+    },
+    "/kol/unfollow": {
+      "delete": {
+        "summary": "Unfollow a KOL",
+        "tags": ["KOL"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["kolId", "userAddress"],
+              "properties": {
+                "kolId": { "type": "integer", "example": 1 },
+                "userAddress": { "type": "string", "example": "0x1234567890abcdef" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "KOL unfollowed successfully" },
+          "400": { "description": "Invalid request data" }
+        }
+      }
+    },
+    "/kol/followed/{userAddress}": {
+      "get": {
+        "summary": "Retrieve KOLs followed by a user",
+        "tags": ["KOL"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userAddress",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User address of the follower"
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of KOLs followed by the user retrieved successfully" },
+          "404": { "description": "No KOLs found for the given user address" }
+        }
+      }
+    },
     "/tweet": {
       "get": {
         "summary": "Retrieve all tweets",
