@@ -81,7 +81,7 @@ model Token {
 model KOLFollowed {
   id          Int      @id @default(autoincrement())
   kolId       Int
-  userAddress String
+  userAddress String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

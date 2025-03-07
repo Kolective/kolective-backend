@@ -17,7 +17,10 @@ const app = express();
 const port = process.env.PORT || 5000;
 const prisma = new PrismaClient();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"]
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -614,7 +617,18 @@ export const addTweetByKOLId = async (req: Request, res: Response) => {
       res.status(404).json({ error: "Token not found" });
     }
 
-    const tweet = await prisma.tweet.create({ data: req.body });
+    const tweet = await prisma.tweet.create({
+      data: {
+        content: req.body.content,
+        kolId: kolId,
+        tokenId: tokenId,
+        signal: req.body.signal,
+        risk: req.body.risk,
+        timestamp: req.body.timestamp,
+        expired: req.body.expired,
+        valid: req.body.valid
+      }
+    });
 
     // Use the serialization helper to handle BigInt values
     res.status(201).json({ tweet: serializeData(tweet) });
@@ -628,15 +642,24 @@ export const followKOL = async (req: Request, res: Response) => {
   const { kolId, userAddress } = req.body;
 
   try {
+    const existingFollow = await prisma.kOLFollowed.findFirst({
+      where: { userAddress },
+    });
+
+    if (existingFollow) {
+      res.status(400).json({ error: "User can only follow one KOL at a time" });
+    }
+
     const follow = await prisma.kOLFollowed.create({
       data: { kolId, userAddress },
     });
-    res.json({ message: 'Followed successfully', follow });
+
+    res.json({ message: "Followed successfully", follow });
   } catch (error) {
-    console.error("Error following kol:", error);
-    res.status(500).json({ error: "Failed to following kol" });
+    console.error("Error following KOL:", error);
+    res.status(500).json({ error: "Failed to follow KOL" });
   }
-}
+};
 
 export const unfollowKOL = async (req: Request, res: Response) => {
   const { kolId, userAddress } = req.body;
@@ -656,7 +679,7 @@ export const getFollowedKOLByUserAddress = async (req: Request, res: Response) =
   const { userAddress } = req.params;
 
   try {
-    const followedKOLs = await prisma.kOLFollowed.findMany({
+    const followedKOL = await prisma.kOLFollowed.findUnique({
       where: { userAddress },
       include: {
         kol: {
@@ -670,12 +693,17 @@ export const getFollowedKOLByUserAddress = async (req: Request, res: Response) =
         }
       }
     });
-    res.json({ followedKOLs });
+
+    if (!followedKOL) {
+      res.status(404).json({ error: "Followed KOL not found for this user" });
+    }
+
+    res.json({ followedKOL });
   } catch (error) {
-    console.error("Error retrieving followed KOLs:", error);
-    res.status(500).json({ error: "Failed to retrieve followed KOLs" });
+    console.error("Error retrieving followed KOL:", error);
+    res.status(500).json({ error: "Failed to retrieve followed KOL" });
   }
-}
+};
 
 app.use(express.json());
 setupSwagger(app);

@@ -292,13 +292,14 @@ const swaggerDocument = {
             "required": true,
             "schema": {
               "type": "object",
-              "required": ["kolId", "content", "signal", "risk", "timestamp"],
+              "required": ["kolId", "tokenId", "content", "signal", "risk", "timestamp"],
               "properties": {
                 "kolId": { "type": "integer", "example": 1 },
-                "content": { "type": "string", "example": "Bitcoin is pumping!" },
+                "tokenId": { "type": "integer", "example": 42 },
+                "content": { "type": "string", "example": "🚀 Bitcoin is pumping! Buy now!" },
                 "signal": { "type": "string", "enum": ["BUY", "SELL"], "example": "BUY" },
-                "risk": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"], "example": "HIGH" },
-                "timestamp": { "type": "string", "format": "date-time", "example": "2025-03-06T12:00:00Z" },
+                "risk": { "type": "string", "enum": ["CONSERVATIVE", "BALANCED", "AGGRESSIVE"], "example": "AGGRESSIVE" },
+                "timestamp": { "type": "integer", "format": "int64", "example": 1719710400000 },
                 "expired": { "type": "boolean", "example": false },
                 "valid": { "type": "boolean", "example": true }
               }
@@ -306,8 +307,41 @@ const swaggerDocument = {
           }
         ],
         "responses": {
-          "201": { "description": "Tweet added successfully" },
-          "400": { "description": "Invalid request data" }
+          "201": {
+            "description": "Tweet added successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "tweetId": 123,
+                  "message": "Tweet added successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "example": { "error": "kolId and tokenId are required" }
+              }
+            }
+          },
+          "404": {
+            "description": "KOL or Token not found",
+            "content": {
+              "application/json": {
+                "example": { "error": "KOL not found" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "example": { "error": "Failed to add tweet" }
+              }
+            }
+          }
         }
       }
     },
