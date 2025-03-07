@@ -189,56 +189,73 @@ export const seedKOL = async (req: Request, res: Response) => {
       return tokens.filter(token => {
         const tags = token.tags || [];
         if (risk === "CONSERVATIVE") return tags.includes("TOP TIER");
-        if (risk === "BALANCED") return tags.includes("TOP 10 MARKET") && tags.includes("TOP TIER");
+        if (risk === "BALANCED") return tags.includes("TOP 10 MARKET") || tags.includes("TOP TIER");
         if (risk === "AGGRESSIVE") return !tags.includes("WRAPPED TOKEN") && !tags.includes("NATIVE TOKEN");
         return false;
       });
     };
 
     const createTweets = async (kolId: number, risk: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
-      const validTokens = filterTokensByRisk(risk);
-      if (validTokens.length === 0) return 0;
-
-      const buyCount = Math.floor(Math.random() * (7 - 5 + 1)) + 5; // 5-7 buys
-      const sellCount = Math.floor(Math.random() * (3 - 2 + 1)) + 2; // 2-3 sells
+      const selectRisk = () => {
+        if (risk === "CONSERVATIVE") return Math.random() < 0.7 ? "CONSERVATIVE" : Math.random() < 0.8 ? "BALANCED" : "AGGRESSIVE";
+        if (risk === "BALANCED") return Math.random() < 0.6 ? "BALANCED" : Math.random() < 0.75 ? "CONSERVATIVE" : "AGGRESSIVE";
+        return Math.random() < 0.7 ? "AGGRESSIVE" : Math.random() < 0.9 ? "BALANCED" : "CONSERVATIVE";
+      };
+    
+      const filterTokensForAggressive = () => {
+        return tokens.filter(token => !(token.tags && token.tags.length > 0));
+      };
+    
+      const buyCount = Math.floor(Math.random() * (15 - 13 + 1)) + 13; // 13-15 buys
+      const sellCount = Math.floor(Math.random() * (11 - 9 + 1)) + 9; // 9-11 sells
       const tweets = [];
-
+    
       for (let i = 0; i < buyCount; i++) {
+        let tweetRisk: any = selectRisk();
+        let validTokens = tweetRisk === "AGGRESSIVE" ? filterTokensForAggressive() : filterTokensByRisk(tweetRisk);
+        if (validTokens.length === 0) continue;
+    
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
         const timestamp = getTimestamp(14 - i);
         const expired = timestamp < getTimestamp(7);
+    
         tweets.push({
           kolId,
           tokenId: token.id,
-          content: generateTweetContent(token.symbol, risk, "BUY"),
+          content: generateTweetContent(token.symbol, tweetRisk, "BUY"),
           signal: "BUY" as SignalType,
-          risk,
+          risk: tweetRisk,
           timestamp,
-          expired: timestamp < getTimestamp(7),
+          expired,
           valid: expired || Math.random() > 0.7,
         });
       }
-
+    
       for (let i = 0; i < sellCount; i++) {
+        let tweetRisk: any = selectRisk();
+        let validTokens = tweetRisk === "AGGRESSIVE" ? filterTokensForAggressive() : filterTokensByRisk(tweetRisk);
+        if (validTokens.length === 0) continue;
+    
         const token = validTokens[Math.floor(Math.random() * validTokens.length)];
         const timestamp = getTimestamp(14 - buyCount - i);
         const expired = timestamp < getTimestamp(7);
+    
         tweets.push({
           kolId,
           tokenId: token.id,
-          content: generateTweetContent(token.symbol, risk, "SELL"),
+          content: generateTweetContent(token.symbol, tweetRisk, "SELL"),
           signal: "SELL" as SignalType,
-          risk,
+          risk: tweetRisk,
           timestamp,
-          expired: timestamp < getTimestamp(7),
+          expired,
           valid: expired || Math.random() > 0.7,
         });
       }
-
+    
       await prisma.tweet.createMany({ data: tweets });
-
+    
       return tweets.length;
-    };
+    };    
 
     const createKOLs = async (recommendation: "CONSERVATIVE" | "BALANCED" | "AGGRESSIVE") => {
       const count = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
