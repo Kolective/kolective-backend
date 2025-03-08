@@ -258,6 +258,29 @@ const swaggerDocument = {
         }
       }
     },
+    "/tweet/id/{id}": {
+      "get": {
+        "summary": "Retrieve tweet by ID",
+        "tags": ["Tweet"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the tweet"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tweet retrieved successfully"
+          },
+          "404": {
+            "description": "Tweet not found"
+          }
+        }
+      }
+    },
     "/tweet/kol/{id}": {
       "get": {
         "summary": "Retrieve tweets by KOL ID",
@@ -345,6 +368,44 @@ const swaggerDocument = {
         }
       }
     },
+    "/tweet/update/{id}": {
+      "put": {
+        "summary": "Update tweet data",
+        "tags": ["Tweet"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the tweet"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "expired": { "type": "boolean", "example": false },
+                "valid": { "type": "boolean", "example": true }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tweet updated successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Tweet not found"
+          }
+        }
+      }
+    },
     "/token/init": {
       "get": {
         "summary": "Initialize tokens",
@@ -363,6 +424,43 @@ const swaggerDocument = {
         "responses": {
           "200": {
             "description": "List of all tokens retrieved successfully"
+          }
+        }
+      }
+    },
+    "/token/update/{id}": {
+      "put": {
+        "summary": "Update token data",
+        "tags": ["Token"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "price": { "type": "number" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token updated successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "404": {
+            "description": "Token not found"
           }
         }
       }

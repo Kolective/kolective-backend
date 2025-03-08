@@ -84,6 +84,34 @@ export const getTokens = async (req: Request, res: Response) => {
   }
 };
 
+export const updateToken = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid ID format" });
+    }
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.status(400).json({ error: "Request body is required" });
+    }
+
+    const existingToken = await prisma.token.findUnique({ where: { id } });
+    if (!existingToken) {
+      res.status(404).json({ error: "Token not found" });
+    }
+
+    const token = await prisma.token.update({
+      where: { id },
+      data: req.body
+    });
+
+    res.json({ token: serializeData(token) });
+  } catch (error) {
+    console.error("Error updating token:", error);
+    res.status(500).json({ error: "Failed to update token" });
+  }
+};
+
 export const deleteAllTokens = async (req: Request, res: Response) => {
   try {
     const result = await prisma.token.deleteMany();
@@ -93,7 +121,7 @@ export const deleteAllTokens = async (req: Request, res: Response) => {
     console.error("Error deleting all tokens:", error);
     res.status(500).json({ error: "Failed to delete all tokens" });
   }
-}
+};
 
 type SignalType = "BUY" | "SELL";
 
@@ -638,6 +666,37 @@ export const addTweetByKOLId = async (req: Request, res: Response) => {
   }
 };
 
+export const updateTweetExpiredAndValid = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid tweet ID format" });
+    }
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.status(400).json({ error: "Request body is required" });
+    }
+
+    const existingTweet = await prisma.tweet.findUnique({ where: { id } });
+    if (!existingTweet) {
+      res.status(404).json({ error: "Tweet not found" });
+    }
+
+    const tweet = await prisma.tweet.update({
+      where: { id },
+      data: {
+        expired: req.body.expired,
+        valid: req.body.valid
+      }
+    });
+
+    res.json({ tweet: serializeData(tweet) });
+  } catch (error) {
+    console.error("Error updating tweet:", error);
+    res.status(500).json({ error: "Failed to update tweet" });
+  }
+};
+
 export const followKOL = async (req: Request, res: Response) => {
   const { kolId, userAddress } = req.body;
 
@@ -711,6 +770,7 @@ setupSwagger(app);
 // TOKEN
 app.get("/api/token/init", initTokens);
 app.get("/api/token/data", getTokens);
+app.put("/api/token/update/:id", updateToken);
 app.delete("/api/token/deleteAll", deleteAllTokens);
 
 // KOL
@@ -726,8 +786,9 @@ app.delete("/api/kol/deleteAll", deleteAllKOL);
 // TWEET
 app.get("/api/tweet", getAllTweet);
 app.get("/api/tweet/kol/:id", getTweetByKOLId);
-app.get("/api/tweet/:id", getTweetById);
+app.get("/api/tweet/id/:id", getTweetById);
 app.post("/api/tweet/add", addTweetByKOLId);
+app.put("/api/tweet/update/:id", updateTweetExpiredAndValid);
 
 // KOL FOLLOWED
 app.post("/api/kol/follow", followKOL);
