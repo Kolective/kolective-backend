@@ -84,7 +84,7 @@ export const getTokens = async (req: Request, res: Response) => {
   }
 };
 
-export const updateToken = async (req: Request, res: Response) => {
+export const updateTokenPrice = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -102,7 +102,9 @@ export const updateToken = async (req: Request, res: Response) => {
 
     const token = await prisma.token.update({
       where: { id },
-      data: req.body
+      data: {
+        priceChange24H: req.body.priceChange24H,
+      }
     });
 
     res.json({ token: serializeData(token) });
@@ -770,7 +772,7 @@ setupSwagger(app);
 // TOKEN
 app.get("/api/token/init", initTokens);
 app.get("/api/token/data", getTokens);
-app.put("/api/token/update/:id", updateToken);
+app.put("/api/token/update/:id", updateTokenPrice);
 app.delete("/api/token/deleteAll", deleteAllTokens);
 
 // KOL

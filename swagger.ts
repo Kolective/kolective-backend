@@ -370,7 +370,7 @@ const swaggerDocument = {
     },
     "/tweet/update/{id}": {
       "put": {
-        "summary": "Update tweet data",
+        "summary": "Update tweet EXPIRED AND VALID status",
         "tags": ["Tweet"],
         "parameters": [
           {
@@ -430,7 +430,7 @@ const swaggerDocument = {
     },
     "/token/update/{id}": {
       "put": {
-        "summary": "Update token data",
+        "summary": "Update token PRICE CHANGE 24H",
         "tags": ["Token"],
         "parameters": [
           {
@@ -447,7 +447,7 @@ const swaggerDocument = {
             "schema": {
               "type": "object",
               "properties": {
-                "price": { "type": "number" }
+                "priceChange24H": { "type": "number", "example": 0.05 },
               }
             }
           }
