@@ -1,113 +1,157 @@
-# KOL Management API
+# Kolective - Web3 KOL Recommendation Platform
 
-## 📌 Description
-This API is used to manage KOL (Key Opinion Leaders) data, including token trading and related statistics. It is built using **Node.js**, **Express**, and **Prisma** as the ORM for database access.
+## Overview
+Kolective is a Web3-powered platform that helps users discover and follow **Key Opinion Leaders (KOLs)** based on risk profiles and AI-generated insights. Users can assess KOLs based on metrics such as **followers, profitability, and risk preferences**, enabling smarter investment decisions in the decentralized space.
 
-## 🚀 Key Features
-- **KOL Management**: Add, update, and retrieve KOL data.
-- **Statistics & Trading**: Update KOL statistics based on their trading activity.
-- **Token Initialization**: Ensure all required tokens exist in the database.
-- **KOL Data Enhancement**: Fill empty KOL data fields with relevant random values.
-- **API Documentation**: Integrated with **Swagger** for easier API exploration.
+## 📌 Features
+- **🏆 KOL Management:** Add, update, and delete KOL profiles.
+- **📢 Tweets & Signals:** Manage tweets with risk-based buy/sell signals.
+- **📊 Risk Profiling:** Classify users into Conservative, Balanced, or Aggressive.
+- **🔗 Web3 Integration:** Connect wallets and track KOL-followed tokens.
+- **📜 Swagger API Docs:** Available at /docs.
 
-## 🛠️ Technologies Used
-- **Node.js** + **Express** (Backend API)
-- **Prisma** (ORM for database management)
-- **PostgreSQL** (Database management)
-- **Swagger** (API Documentation)
+## Tech Stack
+- **Backend:** Node.js, Express.js, Prisma ORM
+- **Database:** PostgreSQL
+- **Blockchain:** Web3.js, Smart Contracts (Solidity)
+- **Frontend:** Next.js, React, TailwindCSS
 
-## 👅 Swagger Documentation
-After running the server, you can access Swagger UI at:
+## Database Schema
+Kolective's backend is powered by **PostgreSQL** and uses **Prisma ORM** to manage data. Below is a summary of the core database models:
+
+### 1. **KOL (Key Opinion Leader)**
+```prisma
+model KOL {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  username           String              @unique
+  avatar             String
+  followersTwitter   Int
+  followersKOL       Int
+  riskRecommendation RiskRecommendation?
+  tweets             Tweet[]
+  avgProfitD         Int
+  rankFollowersKOL   Int?
+  rankAvgProfitD     Int?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  KOLFollowed        KOLFollowed[]
+}
 ```
-http://localhost:5000/docs
+
+### 2. **Tweet (Trading Signals)**
+```prisma
+model Tweet {
+  id        Int        @id @default(autoincrement())
+  tokenId   Int
+  content   String
+  signal    SignalType
+  risk      RiskLevel
+  timestamp BigInt
+  expired   Boolean    @default(false)
+  valid     Boolean    @default(true)
+  kolId     Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  kol       KOL   @relation(fields: [kolId], references: [id], onDelete: Cascade)
+  token     Token @relation(fields: [tokenId], references: [id])
+}
 ```
 
-## 📥 Installation
-1. Clone this repository:
-   ```sh
-   git clone https://github.com/username/repository.git
-   cd repository
-   ```
-2. Install dependencies:
-   ```sh
-   npm install
-   ```
-3. Configure **.env**:
-   ```sh
-   DATABASE_URL="postgresql://user:password@localhost:5432/db_name"
-   ```
-4. Run Prisma migration:
-   ```sh
-   npx prisma migrate dev
-   ```
-5. Start the server:
-   ```sh
-   npm start
-   ```
+### 3. **Token (Crypto Assets Tracked)**
+```prisma
+model Token {
+  id             Int      @id @default(autoincrement())
+  addressToken   String   @unique
+  symbol         String
+  name           String
+  decimals       Int
+  chain          String
+  logo           String
+  priceChange24H Float
+  tags           String[]
+  tweets         Tweet[]
+}
+```
 
-## 📡 API Endpoints
-### ✅ KOL Endpoints
-| Method | Endpoint | Function |
-|--------|----------|---------|
-| `GET`  | `/api/kol/check` | Check if KOL data and tokens exist |
-| `GET`  | `/api/kol/data` | Retrieve all KOL data with trading history |
-| `GET`  | `/api/kol/username/:username` | Retrieve KOL data by Twitter username |
-| `GET`  | `/api/kol/id/:id` | Retrieve KOL data by ID |
-| `GET`  | `/api/kol/init` | Init or update KOL data from an external source |
-| `GET`  | `/api/kol/fill` | Fill empty KOL data fields with random values |
-| `POST` | `/api/kol/update` | Update trading data for a specific KOL |
-| `POST` | `/api/kol/update-all` | Update all KOL data |
+### 4. **KOLFollowed (User-KOL Relationship)**
+```prisma
+model KOLFollowed {
+  id          Int      @id @default(autoincrement())
+  kolId       Int
+  userAddress String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  kol         KOL      @relation(fields: [kolId], references: [id])
+}
+```
 
-### 🔗 Token Endpoints
-| Method | Endpoint | Function |
-|--------|----------|---------|
-| `GET`  | `/api/token/init` | Initialize token data |
-| `GET`  | `/api/token/data` | Retrieve a list of tokens with metadata |
-| `GET`  | `/api/token/address/:address` | Retrieve token data by token address |
+## API Endpoints
+### **KOL Management**
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/kol` | Get all KOLs |
+| `GET` | `/api/kol/id/:id` | Get KOL by ID |
+| `GET` | `/api/kol/username/:username` | Get KOL by username |
+| `POST` | `/api/kol/add` | Add a new KOL |
+| `PUT` | `/api/kol/update/:id` | Update a KOL |
+| `DELETE` | `/api/kol/delete/:id` | Delete a KOL |
 
-## 🏗️ Functions & Purposes
-Below is a list of main functions in the code and their purposes:
+### **Tweet Management**
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/tweet` | Get all tweets |
+| `GET` | `/api/tweet/kol/:id` | Get tweets by KOL ID |
+| `POST` | `/api/tweet/add` | Add a tweet |
+| `PUT` | `/api/tweet/update/:id` | Update tweet validity |
 
-### 1. `updateAllKOLData`
-   - **Purpose**: Updates all KOL data by processing their trading activity and statistics.
+### **User-KOL Interaction**
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `POST` | `/api/kol/follow` | Follow a KOL |
+| `DELETE` | `/api/kol/unfollow` | Unfollow a KOL |
+| `GET` | `/api/kol/followed/:userAddress` | Get followed KOL |
 
-### 2. `getKOLData`
-   - **Purpose**: Retrieves all KOL data along with their trading history.
+## Setup Guide
+### **1. Clone the Repository**
+```sh
+git clone https://github.com/Kolective/kolective-backend
+cd kolective-backend
+```
 
-### 3. `getKOLByUsername`
-   - **Purpose**: Retrieves KOL data by their Twitter username.
+### **2. Install Dependencies**
+```sh
+npm install
+```
 
-### 4. `getKOLById`
-   - **Purpose**: Retrieves KOL data by their unique ID.
+### **3. Configure Environment Variables**
+Create a `.env` file and add your database URL:
+```sh
+DATABASE_URL=
+RPC_URL=
+NODE_ENV=
+```
 
-### 5. `createKOLData`
-   - **Purpose**: Creates or updates KOL data from an external source.
+### **4. Run Prisma Migrations**
+```sh
+npx prisma generate
+npx prisma db push
+```
 
-### 6. `autoFillKolNullData`
-   - **Purpose**: Fills empty KOL data fields with relevant random values.
+### **5. Start the Server**
+```sh
+npm run dev
+```
 
-### 7. `initializeTokens`
-   - **Purpose**: Ensures that all necessary tokens exist in the database.
+## Contributing
+We welcome contributions! Please follow these steps:
+1. Fork the repository.
+2. Create a new branch.
+3. Implement your changes.
+4. Open a pull request.
 
-### 8. `checkKOLDataExists`
-   - **Purpose**: Checks if KOL data and tokens exist in the database.
-
-### 9. `getAllTokens`
-   - **Purpose**: Retrieves all token data from the database.
-
-## 📌 How to Run
-1. Start the server with the following command:
-   ```sh
-   npm start
-   ```
-2. Access endpoints using **Postman** or directly via **browser**.
-
-## 🤝 Contribution
-If you wish to contribute, please fork this repository and create a **pull request** with your proposed changes.
-
-## 📜 License
-This project is licensed under the **MIT** license.
+## License
+This project is licensed under the **MIT License**. Feel free to use and modify it as needed.
 
 ---
-
-🔥 Happy coding! 🚀
+🚀 *Kolective is revolutionizing Web3 trading with AI-powered KOL recommendations.*
